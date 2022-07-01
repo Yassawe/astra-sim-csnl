@@ -86,6 +86,10 @@ void Workload::call(EventType event, CallData* data) {
   }
   if (parallelismPolicy == ParallelismPolicy::Data) {
     iterate_data_parallel();
+  } else if (parallelismPolicy == ParallelismPolicy::DataNoOverlap){
+    iterate_data_parallel_nooverlap();
+  } else if (parallelismPolicy == ParallelismPolicy::DataForwardOverlap){
+    iterate_data_parallel_forwardoverlap();
   } else if (parallelismPolicy == ParallelismPolicy::Transformer) {
     iterate_hybrid_parallel_Transformer();
   } else if (
@@ -269,6 +273,17 @@ void Workload::iterate_data_parallel() {
     return;
   }
 }
+
+void Workload::iterate_data_parallel_nooverlap(){
+  // same as data parallel, but the communication is deferred until the backward propagation ends
+  return;
+}
+
+void Workload::iterate_data_parallel_forwardoverlap(){
+  // ccube idea to overlap communication with forward
+  return;
+}
+
 void Workload::iterate_hybrid_parallel_customized() {
   assert(index >= 0);
   assert(index < SIZE);
@@ -1145,6 +1160,10 @@ int Workload::get_layer_numbers(std::string workload_input) {
 ParallelismPolicy Workload::decode_parallelsim(std::string parallelism) {
   if (parallelism == "DATA")
     return ParallelismPolicy::Data;
+  else if (parallelism == "DATA_NO_OVERLAP")
+    return ParallelismPolicy::DataNoOverlap;
+  else if (parallelism == "DATA_FORWARD_OVERLAP")
+    return ParallelismPolicy::DataForwardOverlap;
   else if (parallelism == "HYBRID_TRANSFORMER")
     return ParallelismPolicy::Transformer;
   else if (parallelism == "HYBRID_TRANSFORMER_FWD_IN_BCKWD")

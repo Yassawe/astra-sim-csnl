@@ -34,6 +34,8 @@ namespace AstraSim {
 enum class ParallelismPolicy {
   MicroBenchmark,
   Data,
+  DataNoOverlap,
+  DataForwardOverlap,
   Transformer,
   TransformerFwdInBckwd,
   DLRM,
@@ -89,6 +91,8 @@ class Workload : Callable {
   void call(EventType event, CallData* data);
   void iterate_micro_benchmark();
   void iterate_data_parallel();
+  void iterate_data_parallel_nooverlap();
+  void iterate_data_parallel_forwardoverlap();
   void iterate_hybrid_parallel_Transformer();
   void iterate_hybrid_parallel_Transformer_fwd_in_bckwd();
   void iterate_hybrid_parallel_DLRM();

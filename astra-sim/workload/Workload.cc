@@ -275,13 +275,184 @@ void Workload::iterate_data_parallel() {
 }
 
 void Workload::iterate_data_parallel_nooverlap(){
-  // same as data parallel, but the communication is deferred until the backward propagation ends
-  return;
+  assert(index >= 0);
+  assert(index < SIZE);
+  check_for_sim_end();
+  if (current_state == LoopState::Forward_Pass) {
+    if (!layers[index]->is_weight_grad_comm_finished_blocking()) {
+      // layers[index]->increment_waiting_for_wg();
+      // waiting_for_comm++;
+      // generator->register_event(this, EventType::General, NULL, 1);
+      return;
+    }
+    if (delay_loaded == false) {
+      counter = layers[index]->get_fwd_pass_compute();
+      if (generator->id == 0) {
+        // std::cout<<"layer: "<<index<<" delay in cycles:
+        // "<<counter<<std::endl;
+      }
+      delay_loaded = true;
+    }
+    if (counter > 0) {
+      if (generator->id == 0) {
+        // std::cout<<"i have been called in cycles:
+        // "<<Sys::boostedTick()<<std::endl;
+      }
+      generator->try_register_event(
+          this, EventType::Workload_Wait, NULL, counter);
+      return;
+    }
+    if (generator->id == 0) {
+      // std::cout<<"moving to the fwp layer:"<<index<<" ,at time:
+      // "<<Sys::boostedTick()<<std::endl;
+    }
+    index++;
+    delay_loaded = false;
+    if (index >= SIZE) {
+      current_state = LoopState::Weight_Gradient;
+      index--;
+    }
+    generator->register_event(this, EventType::General, NULL, 1);
+    return;
+  } else if (current_state == LoopState::Weight_Gradient) {
+    if (delay_loaded == false) {
+      counter = layers[index]->get_weight_grad_compute();
+      delay_loaded = true;
+    }
+    if (counter > 0) {
+      generator->try_register_event(
+          this, EventType::Workload_Wait, NULL, counter);
+      return;
+    }
+    delay_loaded = false;
+
+    if (index == 0) {
+
+      for (int i = 0; i<SIZE; ++i){
+        layers[i]->issue_weight_grad_comm(SchedulingPolicy::None, CollectiveBarrier::Blocking);
+      }
+
+      if (generator->id == 0) {
+        std::cout << "pass: " << pass_counter
+                  << " finished at time: " << Sys::boostedTick() << std::endl;
+      }
+      pass_counter++;
+      current_state = LoopState::Forward_Pass;
+      // if(pass_counter == TOTAL_PASS){
+      //  layers[0]->is_weight_grad_comm_finished_blocking();
+      //}
+    } else {
+      current_state = LoopState::Input_Gradient;
+    }
+    generator->register_event(this, EventType::General, NULL, 1);
+    return;
+  } else if (current_state == LoopState::Input_Gradient) {
+    if (delay_loaded == false) {
+      counter = layers[index]->get_input_grad_compute();
+      delay_loaded = true;
+    }
+    if (counter > 0) {
+      generator->try_register_event(
+          this, EventType::Workload_Wait, NULL, counter);
+      return;
+    }
+    delay_loaded = false;
+    index--;
+    current_state = LoopState::Weight_Gradient;
+    generator->register_event(this, EventType::General, NULL, 1);
+    return;
+  }
 }
 
 void Workload::iterate_data_parallel_forwardoverlap(){
   // ccube idea to overlap communication with forward
-  return;
+    assert(index >= 0);
+  assert(index < SIZE);
+  check_for_sim_end();
+  if (current_state == LoopState::Forward_Pass) {
+    if (!layers[index]->is_weight_grad_comm_finished_blocking()) {
+      // layers[index]->increment_waiting_for_wg();
+      // waiting_for_comm++;
+      // generator->register_event(this, EventType::General, NULL, 1);
+      return;
+    }
+    if (delay_loaded == false) {
+      counter = layers[index]->get_fwd_pass_compute();
+      if (generator->id == 0) {
+        // std::cout<<"layer: "<<index<<" delay in cycles:
+        // "<<counter<<std::endl;
+      }
+      delay_loaded = true;
+    }
+    if (counter > 0) {
+      if (generator->id == 0) {
+        // std::cout<<"i have been called in cycles:
+        // "<<Sys::boostedTick()<<std::endl;
+      }
+      generator->try_register_event(
+          this, EventType::Workload_Wait, NULL, counter);
+      return;
+    }
+    if (generator->id == 0) {
+      // std::cout<<"moving to the fwp layer:"<<index<<" ,at time:
+      // "<<Sys::boostedTick()<<std::endl;
+    }
+    index++;
+    delay_loaded = false;
+    if (index >= SIZE) {
+      current_state = LoopState::Weight_Gradient;
+      index--;
+    }
+    generator->register_event(this, EventType::General, NULL, 1);
+    return;
+  } else if (current_state == LoopState::Weight_Gradient) {
+    if (delay_loaded == false) {
+      counter = layers[index]->get_weight_grad_compute();
+      delay_loaded = true;
+    }
+    if (counter > 0) {
+      generator->try_register_event(
+          this, EventType::Workload_Wait, NULL, counter);
+      return;
+    }
+    delay_loaded = false;
+
+    if (index == 0) {
+
+      for (int i = 0; i<SIZE; ++i){
+        layers[i]->issue_weight_grad_comm(SchedulingPolicy::FIFO, CollectiveBarrier::Non_Blocking);
+      }
+
+      if (generator->id == 0) {
+        std::cout << "pass: " << pass_counter
+                  << " finished at time: " << Sys::boostedTick() << std::endl;
+      }
+      pass_counter++;
+      current_state = LoopState::Forward_Pass;
+      // if(pass_counter == TOTAL_PASS){
+      //  layers[0]->is_weight_grad_comm_finished_blocking();
+      //}
+    } else {
+      current_state = LoopState::Input_Gradient;
+    }
+    generator->register_event(this, EventType::General, NULL, 1);
+    return;
+  } else if (current_state == LoopState::Input_Gradient) {
+    if (delay_loaded == false) {
+      counter = layers[index]->get_input_grad_compute();
+      delay_loaded = true;
+    }
+    if (counter > 0) {
+      generator->try_register_event(
+          this, EventType::Workload_Wait, NULL, counter);
+      return;
+    }
+    delay_loaded = false;
+    index--;
+    current_state = LoopState::Weight_Gradient;
+    generator->register_event(this, EventType::General, NULL, 1);
+    return;
+  }
 }
 
 void Workload::iterate_hybrid_parallel_customized() {
@@ -1200,7 +1371,10 @@ std::map<std::string, std::vector<bool>> Workload::decode_involved_dimensions(
     result["ig"] = all;
     result["wg"] = all;
   } else if (
-      policy == ParallelismPolicy::Data || policy == ParallelismPolicy::DLRM ||
+      policy == ParallelismPolicy::Data || 
+      policy == ParallelismPolicy::DLRM || 
+      policy == ParallelismPolicy::DataNoOverlap || 
+      policy == ParallelismPolicy::DataForwardOverlap||
       policy == ParallelismPolicy::DLRMEnhanced ||
       policy == ParallelismPolicy::MicroBenchmark) {
     result["fwd"] = none;

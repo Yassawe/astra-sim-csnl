@@ -19,9 +19,9 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/vgg16_vanilla.txt \
 --path="${STATS}/" \
 --run-name="vgg16_vanilla" \
---num-passes=1 \
+--num-passes=3 \
 --total-stat-rows=3 \
---stat-row=0 
+--stat-row=0
 
 "${BINARY}" \
 --network-configuration="${NETWORK}" \
@@ -29,9 +29,9 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/vgg16_nooverlap.txt \
 --path="${STATS}/" \
 --run-name="vgg16_nooverlap" \
---num-passes=1 \
+--num-passes=3 \
 --total-stat-rows=3 \
---stat-row=1 
+--stat-row=1
 
 "${BINARY}" \
 --network-configuration="${NETWORK}" \
@@ -39,6 +39,7 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/vgg16_forward.txt \
 --path="${STATS}/" \
 --run-name="vgg16_forward_overlap" \
---num-passes=1 \
+--num-passes=3 \
 --total-stat-rows=3 \
---stat-row=2 
+--stat-row=3 
+

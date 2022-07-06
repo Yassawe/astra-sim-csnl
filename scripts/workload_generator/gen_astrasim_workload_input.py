@@ -204,8 +204,8 @@ class AstraSimOutput:
             line.append(self.scaleSimOutput[WeightGradientCycles][i]) # Weight gradient compute time
             line.append(self.strategy[self.layers[i].parallelism].getCommunicationTypeForWeightGrad(i, self.layers[i])) # Weight gradient communication type
             line.append(self.strategy[self.layers[i].parallelism].getCommunicationSizeForWeightGrad(i, self.layers[i])) # Weight gradient communication size
-            line.append(100) # Delay for 1KB communication size
-            line.append(self.layers[i].parallelism)
+            line.append(1) # Delay for 1KB communication size
+            #line.append(self.layers[i].parallelism)
 
             line = map(lambda x: str(x), line)
             line_string = "\t".join(line)

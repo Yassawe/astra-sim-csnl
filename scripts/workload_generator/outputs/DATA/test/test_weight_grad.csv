@@ -1,0 +1,2 @@
+Layer name,ifmap height,ifmap width,filter height,filter width,channels,num filter,strides,
+MLP_Bottom_0,512,128,1,128,1,128,1,

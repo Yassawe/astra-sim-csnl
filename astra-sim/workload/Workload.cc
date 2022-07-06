@@ -199,17 +199,23 @@ void Workload::iterate_data_parallel() {
       // generator->register_event(this, EventType::General, NULL, 1);
 
       if(generator->id == 0){
-        std::cout<<"Forward layer " << index << " waits for its communication to finish" << std::endl;
+        std::cout<<"Forward layer " << index << " waits for its communication to finish. Cycle: " << Sys::boostedTick()<< std::endl;
       }
       return;
     }
+
+    if(index==0){
+      forward_start = Sys::boostedTick();
+    }
+
+
     if (delay_loaded == false) {
       counter = layers[index]->get_fwd_pass_compute();
       delay_loaded = true;
     }
     if (counter > 0) {
       if (generator->id == 0) {
-        std::cout<<"Forward layer "<< index << " have been called in cycle: "<<Sys::boostedTick()<<std::endl;
+        std::cout<<"Forward layer "<< index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
       }
       generator->try_register_event(
           this, EventType::Workload_Wait, NULL, counter);
@@ -222,6 +228,7 @@ void Workload::iterate_data_parallel() {
     index++;
     delay_loaded = false;
     if (index >= SIZE) {
+      forward_end = Sys::boostedTick();
       current_state = LoopState::Weight_Gradient;
       index--;
     }
@@ -235,7 +242,7 @@ void Workload::iterate_data_parallel() {
     if (counter > 0) {
 
       if (generator->id == 0) {
-        std::cout<<"Weight gradient computation "<< index << " have been called in cycle: "<<Sys::boostedTick()<<std::endl;
+        std::cout<<"Weight gradient computation "<< index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
       }
 
 
@@ -243,14 +250,20 @@ void Workload::iterate_data_parallel() {
           this, EventType::Workload_Wait, NULL, counter);
       return;
     }
+
     delay_loaded = false;
 
-    if (generator->id == 0) {
-        std::cout<<"Weight gradient communication " << index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
+    if (index == SIZE-1){
+      backward_start = Sys::boostedTick();
     }
+    
+
+    // if (generator->id == 0) {
+    //     std::cout<<"Weight gradient communication " << index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
+    // }
 
     layers[index]->issue_weight_grad_comm(
-        SchedulingPolicy::None, CollectiveBarrier::Non_Blocking);
+        SchedulingPolicy::FIFO, CollectiveBarrier::Non_Blocking);
     
     
     if (index == 0) {
@@ -260,6 +273,11 @@ void Workload::iterate_data_parallel() {
       }
       pass_counter++;
       current_state = LoopState::Forward_Pass;
+
+      backward_end = Sys::boostedTick();
+
+      std::cout<<"FORWARD TIME = " << (forward_end-forward_start)/FREQ << std::endl;
+      std::cout<<"BACKWARD TIME = " << (backward_end - backward_start)/FREQ << std::endl;
       // if(pass_counter == TOTAL_PASS){
       //  layers[0]->is_weight_grad_comm_finished_blocking();
       //}
@@ -295,12 +313,15 @@ void Workload::iterate_data_parallel_nooverlap(){
     if (!layers[0]->is_weight_grad_comm_finished_blocking()){
 
      if(generator->id == 0){
-        std::cout<<"Forward layer " << index << " waits for its communication to finish" << std::endl;
+        std::cout<<"Forward layer " << index << " waits for its communication to finish. Cycle: " << Sys::boostedTick()<< std::endl;
       }
-      
       return;
     }
     
+    if(index==0){
+      forward_start = Sys::boostedTick();
+    }
+
     if (delay_loaded == false) {
       counter = layers[index]->get_fwd_pass_compute();
       if (generator->id == 0) {
@@ -311,7 +332,7 @@ void Workload::iterate_data_parallel_nooverlap(){
     }
     if (counter > 0) {
       if (generator->id == 0) {
-        std::cout<<"Forward layer "<< index << " have been called in cycle: "<<Sys::boostedTick()<<std::endl;
+        std::cout<<"Forward layer "<< index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
       }
 
       generator->try_register_event(
@@ -325,6 +346,7 @@ void Workload::iterate_data_parallel_nooverlap(){
     index++;
     delay_loaded = false;
     if (index >= SIZE) {
+      forward_end = Sys::boostedTick();
       current_state = LoopState::Weight_Gradient;
       index--;
     }
@@ -337,21 +359,24 @@ void Workload::iterate_data_parallel_nooverlap(){
     }
     if (counter > 0) {
       if (generator->id == 0) {
-        std::cout<<"Weight gradient computation "<< index << " have been called in cycle: "<<Sys::boostedTick()<<std::endl;
+        std::cout<<"Weight gradient computation "<< index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
       }
       generator->try_register_event(
           this, EventType::Workload_Wait, NULL, counter);
       return;
     }
     delay_loaded = false;
+    if (index == SIZE-1){
+      backward_start = Sys::boostedTick();
+    }
 
     if (index == 0) {
 
       for (int i = 0; i<SIZE; i++){
 
-        if(generator->id == 0){
-          std::cout<<"Weight gradient communication " << i << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
-        }
+        // if(generator->id == 0){
+        //   std::cout<<"Weight gradient communication " << i << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
+        // }
 
         layers[i]->issue_weight_grad_comm(SchedulingPolicy::LIFO, CollectiveBarrier::Blocking);
         generator->register_event(this, EventType::General, NULL, 1);
@@ -362,10 +387,18 @@ void Workload::iterate_data_parallel_nooverlap(){
                   << " finished at time: " << Sys::boostedTick() << std::endl;
       }
       pass_counter++;
+
+      backward_end = Sys::boostedTick();
       current_state = LoopState::Forward_Pass;
+
+      
       // if(pass_counter == TOTAL_PASS){
       //  layers[0]->is_weight_grad_comm_finished_blocking();
       //}
+
+      std::cout<<"FORWARD TIME = " << (forward_end-forward_start)/FREQ << std::endl;
+      std::cout<<"BACKWARD TIME = " << (backward_end - backward_start)/FREQ << std::endl;
+
     } else {
       current_state = LoopState::Input_Gradient;
     }
@@ -397,7 +430,7 @@ void Workload::iterate_data_parallel_forwardoverlap(){
   if (current_state == LoopState::Forward_Pass) {
     if (!layers[index]->is_weight_grad_comm_finished_blocking()) {
       if(generator->id == 0){
-        std::cout<<"Forward layer " << index << " waits for its communication to finish" << std::endl;
+        std::cout<<"Forward layer " << index << " waits for its communication to finish. Cycle: " << Sys::boostedTick()<< std::endl;
       }
 
       return;
@@ -412,7 +445,7 @@ void Workload::iterate_data_parallel_forwardoverlap(){
     }
     if (counter > 0) {
       if (generator->id == 0) {
-        std::cout<<"Forward layer "<< index << " have been called in cycle: "<<Sys::boostedTick()<<std::endl;
+        std::cout<<"Forward layer "<< index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
       }
       generator->try_register_event(
           this, EventType::Workload_Wait, NULL, counter);
@@ -437,7 +470,7 @@ void Workload::iterate_data_parallel_forwardoverlap(){
     }
     if (counter > 0) {
       if (generator->id == 0) {
-        std::cout<<"Weight gradient computation "<< index << " have been called in cycle: "<<Sys::boostedTick()<<std::endl;
+        std::cout<<"Weight gradient computation "<< index << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
       }
 
       generator->try_register_event(
@@ -448,23 +481,19 @@ void Workload::iterate_data_parallel_forwardoverlap(){
 
     if (index == 0) {
 
-      
+      for (int i = 0; i<SIZE; i++){
+          // if(generator->id == 0){
+          // std::cout<<"Weight gradient communication " << i << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
+          // }
+          layers[i]->issue_weight_grad_comm(SchedulingPolicy::FIFO, CollectiveBarrier::Non_Blocking);
+          generator->register_event(this, EventType::General, NULL, 1);
+        }
 
       if (generator->id == 0) {
         std::cout << "pass: " << pass_counter
                   << " finished at time: " << Sys::boostedTick() << std::endl;
       }
       pass_counter++;
-
-      if (pass_counter<TOTAL_PASS){
-        for (int i = 0; i<SIZE; i++){
-          if(generator->id == 0){
-          std::cout<<"Weight gradient communication " << i << " have been issued in cycle: "<<Sys::boostedTick()<<std::endl;
-          }
-          layers[i]->issue_weight_grad_comm(SchedulingPolicy::FIFO, CollectiveBarrier::Non_Blocking);
-          generator->register_event(this, EventType::General, NULL, 1);
-        }
-      }
 
       current_state = LoopState::Forward_Pass;
       // if(pass_counter == TOTAL_PASS){

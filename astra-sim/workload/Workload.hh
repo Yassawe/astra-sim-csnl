@@ -77,6 +77,11 @@ class Workload : Callable {
   int pending_collectives;
   ParallelismPolicy parallelismPolicy;
   // reports
+  Tick forward_start;
+  Tick forward_end;
+  Tick backward_start;
+  Tick backward_end;
+
   Tick waiting_for_comm;
   Workload(
       std::string run_name,

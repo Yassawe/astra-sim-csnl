@@ -11,7 +11,7 @@ WORKLOAD_DIR="${SCRIPT_DIR:?}"/../inputs/workload
 STATS="${SCRIPT_DIR:?}"/results/vgg16
 
 rm -rf "${STATS}"
-mkdir "${STATS}"
+mkdir -p "${STATS}"
 
 "${BINARY}" \
 --network-configuration="${NETWORK}" \

@@ -11,7 +11,7 @@ WORKLOAD_DIR="${SCRIPT_DIR:?}"/../inputs/workload
 STATS="${SCRIPT_DIR:?}"/results/resnet50
 
 rm -rf "${STATS}"
-mkdir "${STATS}"
+mkdir -p "${STATS}"
 
 "${BINARY}" \
 --network-configuration="${NETWORK}" \
@@ -19,7 +19,7 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/Resnet50_vanilla.txt \
 --path="${STATS}/" \
 --run-name="resnet_vanilla" \
---num-passes=100 \
+--num-passes=10 \
 --total-stat-rows=3 \
 --stat-row=0 
 
@@ -30,7 +30,7 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/Resnet50_nooverlap.txt \
 --path="${STATS}/" \
 --run-name="resnet_nooverlap" \
---num-passes=100 \
+--num-passes=10 \
 --total-stat-rows=3 \
 --stat-row=1 
 
@@ -40,6 +40,6 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/Resnet50_forward.txt \
 --path="${STATS}/" \
 --run-name="resnet_forward_overlap" \
---num-passes=100 \
+--num-passes=10 \
 --total-stat-rows=3 \
 --stat-row=2 

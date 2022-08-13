@@ -6,10 +6,10 @@
     "units-count": [8, 2],
     "links-count": [6, 1],
     "link-latency": [50, 50],
-    "link-bandwidth": [100, 50],
+    "link-bandwidth": [50, 25],
     "nic-latency": [0, 0],
     "router-latency": [0, 0],
-    "hbm-latency": [100, 100],
+    "hbm-latency": [10, 10],
     "hbm-bandwidth": [370, 370],
     "hbm-scale": [0, 0]
   }

@@ -6,7 +6,7 @@ if __name__=='__main__':
     comps = df['ComputeTime'].astype(float).to_numpy()
     expcomms = df['ExposedCommsTime'].astype(float).to_numpy()
     totals = comps + expcomms
-    totals = totals/5
+    totals = np.rint(totals/5)
 
     f = open("../output/output.txt", "a")
 

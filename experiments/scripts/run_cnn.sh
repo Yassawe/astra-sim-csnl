@@ -5,8 +5,8 @@ SCRIPT_DIR=$(dirname "$(realpath $0)")
 
 # Absolute paths to useful directories
 BINARY="${SCRIPT_DIR:?}"/../../build/astra_analytical/build/AnalyticalAstra/bin/AnalyticalAstra
-NETWORK="${SCRIPT_DIR:?}"/../../inputs/network/analytical/dgx1.json
-SYSTEM="${SCRIPT_DIR:?}"/../../inputs/system/dgx1.txt
+NETWORK="${SCRIPT_DIR:?}"/../../inputs/network/analytical/dgx2.json
+SYSTEM="${SCRIPT_DIR:?}"/../../inputs/system/dgx2.txt
 WORKLOAD_DIR="${SCRIPT_DIR:?}"/../workload
 STATS="${SCRIPT_DIR:?}"/../results
 

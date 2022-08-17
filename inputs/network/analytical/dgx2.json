@@ -3,7 +3,7 @@
     "topologies-per-dim": ["Switch", "Switch"],
     "dimension-type": ["N", "N"],
     "dimensions-count": 2,
-    "units-count": [8, 2],
+    "units-count": [16, 2],
     "links-count": [6, 1],
     "link-latency": [50, 50],
     "link-bandwidth": [50, 25],

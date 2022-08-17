@@ -58,8 +58,8 @@ if __name__=='__main__':
 
     args = parser.parse_args()
 
-    scales_list = list(np.arange(0.2, 20.2, 0.2))
-    
+    scales_list = list(np.arange(0.1, 5.1, 0.1))
+
     df = convert_to_df()
     scale_compute(df, args.scaleindex)
     create_output(df)

@@ -3,8 +3,8 @@ import numpy as np
 import argparse
 
 
-IN_PATH = "../workload/vgg16.txt"
-OUT_PATH = "../workload/out_"
+IN_PATH = "../inputs/workload/vgg16.txt"
+OUT_PATH = "../inputs/workload/out_"
 
 def convert_to_df():
 
@@ -37,9 +37,9 @@ def scale_compute(df, scale):
     df['i_grad_compute'] = pd.to_numeric(df['i_grad_compute'])
     df['w_grad_compute'] = pd.to_numeric(df['w_grad_compute'])
 
-    df['forward_compute'] = df['forward_compute'].apply(lambda x: x*scale)
-    df['i_grad_compute'] = df['i_grad_compute'].apply(lambda x: x*scale)
-    df['w_grad_compute'] = df['w_grad_compute'].apply(lambda x: x*scale)
+    df['forward_compute'] = df['forward_compute'].apply(lambda x: int(x*scale))
+    df['i_grad_compute'] = df['i_grad_compute'].apply(lambda x: int(x*scale))
+    df['w_grad_compute'] = df['w_grad_compute'].apply(lambda x: int(x*scale))
 
 def create_output(df):
     types = ["DATA", "DATA_FORWARD_OVERLAP", "DATA_NO_OVERLAP"]
@@ -58,8 +58,10 @@ if __name__=='__main__':
 
     args = parser.parse_args()
 
-    scales_list = list(np.arange(0.1, 5.1, 0.1))
+    scales_list = list(np.arange(1, 100, 1))
+
+    scale = scales_list[args.scaleindex]
 
     df = convert_to_df()
-    scale_compute(df, args.scaleindex)
+    scale_compute(df, scale)
     create_output(df)

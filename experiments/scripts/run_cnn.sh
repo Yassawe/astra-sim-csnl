@@ -5,9 +5,9 @@ SCRIPT_DIR=$(dirname "$(realpath $0)")
 
 # Absolute paths to useful directories
 BINARY="${SCRIPT_DIR:?}"/../../build/astra_analytical/build/AnalyticalAstra/bin/AnalyticalAstra
-NETWORK="${SCRIPT_DIR:?}"/../../inputs/network/analytical/dgx2.json
-SYSTEM="${SCRIPT_DIR:?}"/../../inputs/system/dgx2.txt
-WORKLOAD_DIR="${SCRIPT_DIR:?}"/../workload
+NETWORK="${SCRIPT_DIR:?}"/../inputs/network/output.json
+SYSTEM="${SCRIPT_DIR:?}"/../../inputs/system/switch.txt
+WORKLOAD_DIR="${SCRIPT_DIR:?}"/../inputs/workload
 STATS="${SCRIPT_DIR:?}"/../results
 
 rm -rf "${STATS}"
@@ -19,7 +19,7 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/out_DATA.txt \
 --path="${STATS}/" \
 --run-name="backward_overlap" \
---num-passes=5 \
+--num-passes=50 \
 --total-stat-rows=3 \
 --stat-row=0
 
@@ -29,7 +29,7 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/out_DATA_NO_OVERLAP.txt \
 --path="${STATS}/" \
 --run-name="no_overlap" \
---num-passes=5 \
+--num-passes=50 \
 --total-stat-rows=3 \
 --stat-row=1
 
@@ -39,7 +39,7 @@ mkdir "${STATS}"
 --workload-configuration="${WORKLOAD_DIR}"/out_DATA_FORWARD_OVERLAP.txt \
 --path="${STATS}/" \
 --run-name="forward_overlap" \
---num-passes=5 \
+--num-passes=50 \
 --total-stat-rows=3 \
 --stat-row=2 
 

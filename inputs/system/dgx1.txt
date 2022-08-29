@@ -7,4 +7,4 @@ all-reduce-implementation: ring
 all-gather-implementation: ring
 reduce-scatter-implementation: ring
 all-to-all-implementation: ring
-collective-optimization: localBWAware
+collective-optimization: baseline

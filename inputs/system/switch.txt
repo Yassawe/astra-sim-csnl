@@ -7,4 +7,4 @@ all-reduce-implementation: halvingDoubling
 all-gather-implementation: halvingDoubling
 reduce-scatter-implementation: halvingDoubling
 all-to-all-implementation: direct
-collective-optimization: localBWAware
+collective-optimization: baseline

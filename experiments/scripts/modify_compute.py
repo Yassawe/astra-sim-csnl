@@ -58,7 +58,7 @@ if __name__=='__main__':
 
     args = parser.parse_args()
 
-    scales_list = list(np.arange(1, 100, 1))
+    scales_list = list(np.arange(1, 101, 1))
 
     scale = scales_list[args.scaleindex]
 
